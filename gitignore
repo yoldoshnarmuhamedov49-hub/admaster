@@ -1,0 +1,13 @@
+# Maxfiy sozlamalar
+.env
+*.env
+
+# Ma'lumotlar bazasi (mijozlar, to'lovlar)
+*.db
+*.sqlite3
+
+# Python keshi
+__pycache__/
+*.pyc
+venv/
+.venv/
