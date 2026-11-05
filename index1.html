@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ADMASTER</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+  :root {
+    --bg: var(--tg-theme-bg-color, #ffffff);
+    --text: var(--tg-theme-text-color, #000000);
+    --hint: var(--tg-theme-hint-color, #708499);
+    --card: var(--tg-theme-secondary-bg-color, #f2f2f2);
+    --accent: var(--tg-theme-button-color, #2481cc);
+    --accent-text: var(--tg-theme-button-text-color, #ffffff);
+  }
+  * { box-sizing: border-box; }
+  body {
+    font-family: system-ui, -apple-system, sans-serif;
+    margin: 0; padding: 16px;
+    background: var(--bg); color: var(--text);
+  }
+  h2 { margin: 0 0 14px; font-size: 20px; }
+  h3 { margin: 22px 0 8px; font-size: 16px; }
+  .plans { display: flex; flex-direction: column; gap: 10px; }
+  .card {
+    border: 2px solid transparent; border-radius: 12px;
+    padding: 12px 14px; background: var(--card); cursor: pointer;
+    transition: border-color .15s;
+  }
+  .card.active { border-color: var(--accent); }
+  .card-head { display: flex; justify-content: space-between; align-items: center; }
+  .card-name { font-size: 16px; font-weight: 700; }
+  .card-price { font-size: 15px; font-weight: 600; color: var(--accent); }
+  .card ul { margin: 8px 0 0; padding-left: 18px; font-size: 13px; color: var(--hint); }
+  .card li { margin: 2px 0; }
+  label { display: block; margin: 16px 0 6px; font-weight: 600; font-size: 14px; }
+  input, textarea {
+    width: 100%; padding: 11px; font-size: 15px;
+    border: 1px solid var(--hint); border-radius: 10px;
+    background: var(--bg); color: var(--text);
+  }
+  textarea { min-height: 110px; resize: vertical; }
+  .counter { font-size: 12px; color: var(--hint); text-align: right; margin-top: 4px; }
+  .hint { font-size: 12px; color: var(--hint); margin-top: 4px; }
+  button {
+    width: 100%; margin-top: 20px; padding: 14px; border: 0;
+    border-radius: 10px; font-size: 16px; font-weight: 600;
+    background: var(--accent); color: var(--accent-text);
+    cursor: pointer;
+  }
+</style>
+</head>
+<body>
+
+<h2>📢 Reklama buyurtma qilish</h2>
+
+<h3>1. Tarifni tanlang</h3>
+<div class="plans" id="plans"></div>
+
+<h3>2. Ma'lumotlar</h3>
+<label for="channel">Kanal (@username)</label>
+<input id="channel" placeholder="@kanal_nomi" autocomplete="off">
+<div class="hint">Bot kanalda admin bo'lishi kerak.</div>
+
+<label for="text">Reklama matni</label>
+<textarea id="text" maxlength="1000" placeholder="Reklama matnini yozing..."></textarea>
+<div class="counter"><span id="count">0</span>/1000</div>
+
+<button id="submit">Buyurtma berish</button>
+
+<script>
+  const tg = window.Telegram.WebApp;
+  tg.ready();
+  tg.expand();
+
+  const PLANS = {
+    START: {
+      price: "10 000 so'm",
+      icon: "🥉",
+      features: ["1 ta kanalga 1 ta post", "24 soat ichida joylanadi", "Post muddati: 24 soat"],
+    },
+    STANDART: {
+      price: "25 000 so'm",
+      icon: "🥈",
+      features: ["1 ta kanalga 3 ta post", "12 soat ichida joylanadi", "Post muddati: 3 kun"],
+    },
+    PREMIUM: {
+      price: "50 000 so'm",
+      icon: "🥇",
+      features: ["1 ta kanalga 5 ta post", "1 soat ichida joylanadi", "Post muddati: 3 kun"],
+    },
+    VIP: {
+      price: "100 000 so'm",
+      icon: "💎",
+      features: ["1 ta kanalga 10 ta post", "Darhol joylanadi", "Pin qilib qo'yiladi", "Post muddati: 7 kun"],
+    },
+  };
+
+  let selected = "START";
+
+  const plansEl = document.getElementById("plans");
+
+  function render() {
+    plansEl.innerHTML = "";
+    for (const [name, p] of Object.entries(PLANS)) {
+      const card = document.createElement("div");
+      card.className = "card" + (name === selected ? " active" : "");
+      card.innerHTML = `
+        <div class="card-head">
+          <span class="card-name">${p.icon} ${name}</span>
+          <span class="card-price">${p.price}</span>
+        </div>
+        <ul>${p.features.map(f => `<li>${f}</li>`).join("")}</ul>
+      `;
+      card.onclick = () => {
+        selected = name;
+        render();
+      };
+      plansEl.appendChild(card);
+    }
+  }
+  render();
+
+  const textEl = document.getElementById("text");
+  textEl.addEventListener("input", () => {
+    document.getElementById("count").textContent = textEl.value.length;
+  });
+
+  document.getElementById("submit").onclick = () => {
+    const channel = document.getElementById("channel").value.trim();
+    const text = textEl.value.trim();
+
+    if (!channel || !text) {
+      tg.showAlert("Iltimos, kanal va matnni to'ldiring");
+      return;
+    }
+
+    tg.sendData(JSON.stringify({ channel, plan: selected, text }));
+  };
+</script>
+</body>
+</html>
